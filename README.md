@@ -15,3 +15,11 @@ README.mdのタイトルを変更する
 仮想環境を作成する
 
     pipenv --python 3.10
+
+pyinstallerの用意
+
+    pipenv install pyinstaller
+
+### ビルド
+
+    pyinstaller ./src/main.py --onefile --clean --name FindFolder
