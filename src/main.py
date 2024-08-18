@@ -157,6 +157,9 @@ class FolderExplorerApp:
             """
             self.sort_column(col_num_r)
 
+        def get_folder_list_count(self) -> int:
+            return len(self.treeview_folder.get_children())
+
     def __init__(self, root: tk.Tk) -> None:
         self.root_m = root
         self.root_m.title("FindFolder")
@@ -167,6 +170,11 @@ class FolderExplorerApp:
         pos_x_def = 10
         pos_y_def = 10
         self.root_m.geometry(f"{size_width_def}x{size_height_def}+{pos_x_def}+{pos_y_def}")
+
+        # スタイルの作成
+        style = ttk.Style()
+        style.theme_use("clam")  # テーマを変更
+        style.configure("Treeview.Heading", foreground="#1B0E5D", background="#E4F1A2")
 
         # 表示するためのframe
         self.frame_m = ttk.Frame(self.root_m)
@@ -179,7 +187,7 @@ class FolderExplorerApp:
         # フォルダ一覧を表示する
         self.folder_treeview_m = self.FolderTreeview(self.frame_m)
 
-    def open_folder(self) -> list[str]:
+    def open_folder(self) -> tuple[bool, list[str]]:
         """対象とするフォルダを選択する
 
         Returns:
@@ -189,21 +197,26 @@ class FolderExplorerApp:
         # ユーザにフォルダ選択を促す
         folder_path = filedialog.askdirectory(title="検索対象フォルダを選択してください")
         if os.path.isdir(folder_path) is False:
-            messagebox.showerror("エラー", "フォルダが存在しません。")
-            return []
+            if 0 != self.folder_treeview_m.get_folder_list_count():
+                # 既に表示中のリストが存在するなら何もしない
+                return False, []
+            else:
+                messagebox.showerror("エラー", "存在するフォルダを指定してください。")
+                return True, []
 
         # 指定されたフォルダ内のフォルダ一覧を取得する
         folder_path_list = glob.glob(f"{folder_path}{os.sep}**{os.sep}")
         if 0 == len(folder_path_list):
             messagebox.showerror("エラー", "フォルダの中身が空です。")
-            return []
+            return True, []
 
-        return folder_path_list
+        return True, folder_path_list
 
     def btn_folder_open_click(self) -> None:
         """指定フォルダ内のフォルダ一覧を表示する"""
-        folder_path_list = self.open_folder()
-        self.folder_treeview_m.update_folder_list(folder_path_list)
+        res, folder_path_list = self.open_folder()
+        if res is True:
+            self.folder_treeview_m.update_folder_list(folder_path_list)
 
 
 def main() -> None:
